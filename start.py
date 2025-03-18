@@ -17,8 +17,10 @@ while True:
     opcao = int(input('Digite a opção desejada:'))
 
     if opcao == 1:
+
         if quantidade_de_saques >= 3:
             print('Limite de saques diários atingido')
+
         else:
             saque = int(input(' \n Digite o valor do saque: '))
             if saque < 0:
