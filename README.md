@@ -26,7 +26,7 @@ O sistema é composto por diversas classes que representam clientes, contas e tr
 
 ## Como Executar
 
-1. Certifique-se de ter o Python instalado (versão 3.6 ou superior).
+1. Certifique-se de ter o Python instalado (versão 3.13 ou superior).
 2. Execute o script principal:
 
    ```sh
