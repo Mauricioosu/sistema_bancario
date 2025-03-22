@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import pickle
 import getpass  # Para entrada segura de senhas
-import unittest  # Para testes unitários
 
 ROOT_PATH = Path(__file__).parent
 DATA_PATH = ROOT_PATH / "data"

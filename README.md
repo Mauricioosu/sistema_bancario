@@ -26,13 +26,7 @@ Este é um sistema bancário simples desenvolvido em Python, que permite a cria�
    git clone https://github.com/Mauricioosu/sistema_bancario
    ```
 
-2. Navegue até o diretório do projeto:
-
-   ```bash
-   cd sistema-bancario
-   ```
-
-3. Execute o programa:
+2. Execute o programa:
 
    ```bash
    python main.py
@@ -84,14 +78,6 @@ Ao executar o programa, você verá um menu com as seguintes opções:
 - **clientes.pkl**: Arquivo que armazena os dados dos clientes.
 - **contas.pkl**: Arquivo que armazena os dados das contas.
 - **log.txt**: Arquivo de log que registra todas as operações realizadas.
-
-## Testes
-
-O projeto inclui testes unitários para garantir o funcionamento das principais funcionalidades. Para executar os testes, use o seguinte comando:
-
-```bash
-python -m unittest discover
-```
 
 ## Contribuição
 
