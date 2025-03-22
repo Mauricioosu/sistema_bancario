@@ -2,8 +2,12 @@ import textwrap
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
+import pickle
+import getpass  # Para entrada segura de senhas
 
 ROOT_PATH = Path(__file__).parent
+DATA_PATH = ROOT_PATH / "data"
+DATA_PATH.mkdir(exist_ok=True)  # Cria a pasta de dados se não existir
 
 class ContasIterador:
     def __init__(self, contas):
@@ -33,7 +37,7 @@ class Cliente:
         self.contas = []
 
     def realizar_transacao(self, conta, transacao):
-        if len(conta.historico.transacoes_do_dia()) >= 2:
+        if len(conta.historico.transacoes_do_dia()) >= 10:
             print("\n* * * * Você excedeu o número de transações diárias * * * *")
             return
 
@@ -44,11 +48,12 @@ class Cliente:
 
 
 class PessoaFisica(Cliente):
-    def __init__(self, nome, data_nascimento, cpf, endereco):
+    def __init__(self, nome, data_nascimento, cpf, endereco, senha):
         super().__init__(endereco)
         self.nome = nome
         self.data_nascimento = data_nascimento
         self.cpf = cpf
+        self.senha = senha  # Senha para autenticação
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: ('{self.nome}', '{self.cpf}')>"
@@ -257,6 +262,11 @@ def filtrar_cliente(cpf, clientes):
     return clientes_filtrados[0] if clientes_filtrados else None
 
 
+def autenticar_cliente(cliente):
+    senha = getpass.getpass("Digite sua senha: ")
+    return cliente.senha == senha
+
+
 def recuperar_conta_cliente(cliente):
     if not cliente.contas:
         print("\n* * * * Cliente não possui conta! * * * *")
@@ -274,11 +284,19 @@ def depositar(clientes):
         print("\n* * * * Cliente não encontrado! * * * *")
         return
 
-    try:
-        valor = float(input("Informe o valor do depósito: "))
-    except ValueError:
-        print("\n* * * * Valor inválido! * * * *")
+    if not autenticar_cliente(cliente):
+        print("\n* * * * Senha incorreta! * * * *")
         return
+
+    while True:
+        try:
+            valor = float(input("Informe o valor do depósito: "))
+            if valor <= 0:
+                print("\n* * * * O valor do depósito deve ser positivo. * * * *")
+                continue
+            break
+        except ValueError:
+            print("\n* * * * Valor inválido! Por favor, insira um número válido. * * * *")
 
     transacao = Deposito(valor)
 
@@ -298,11 +316,19 @@ def sacar(clientes):
         print("\n* * * * Cliente não encontrado! * * * *")
         return
 
-    try:
-        valor = float(input("Informe o valor do saque: "))
-    except ValueError:
-        print("\n* * * * Valor inválido! * * * *")
+    if not autenticar_cliente(cliente):
+        print("\n* * * * Senha incorreta! * * * *")
         return
+
+    while True:
+        try:
+            valor = float(input("Informe o valor do saque: "))
+            if valor <= 0:
+                print("\n* * * * O valor do saque deve ser positivo. * * * *")
+                continue
+            break
+        except ValueError:
+            print("\n* * * * Valor inválido! Por favor, insira um número válido. * * * *")
 
     transacao = Saque(valor)
 
@@ -322,6 +348,10 @@ def exibir_extrato(clientes):
         print("\n* * * * Cliente não encontrado! * * * *")
         return
 
+    if not autenticar_cliente(cliente):
+        print("\n* * * * Senha incorreta! * * * *")
+        return
+
     conta = recuperar_conta_cliente(cliente)
     if not conta:
         return
@@ -329,6 +359,7 @@ def exibir_extrato(clientes):
     print("\n================ EXTRATO ================")
     extrato = ""
     tem_transacao = False
+    saldo_inicial = conta.saldo
     for transacao in conta.historico.gerar_relatorio():
         tem_transacao = True
         extrato += f"\n{transacao['data']}\n{transacao['tipo']}:\tR$ {transacao['valor']:.2f}"
@@ -337,10 +368,11 @@ def exibir_extrato(clientes):
         extrato = "Não foram realizadas movimentações"
 
     print(extrato)
-    print(f"\nSaldo:\n\tR$ {conta.saldo:.2f}")
+    print(f"\nSaldo inicial:\n\tR$ {saldo_inicial:.2f}")
+    print(f"Saldo atual:\n\tR$ {conta.saldo:.2f}")
     print("==========================================")
 
- 
+
 @log_transacao
 def criar_cliente(clientes):
     cpf = input("Informe o CPF (somente número): ")
@@ -353,8 +385,9 @@ def criar_cliente(clientes):
     nome = input("Informe o nome completo: ")
     data_nascimento = input("Informe a data de nascimento (dd-mm-aaaa): ")
     endereco = input("Informe o endereço (logradouro, nro - bairro - cidade/sigla estado): ")
+    senha = getpass.getpass("Crie uma senha: ")
 
-    cliente = PessoaFisica(nome=nome, data_nascimento=data_nascimento, cpf=cpf, endereco=endereco)
+    cliente = PessoaFisica(nome=nome, data_nascimento=data_nascimento, cpf=cpf, endereco=endereco, senha=senha)
 
     clientes.append(cliente)
 
@@ -370,7 +403,10 @@ def criar_conta(numero_conta, clientes, contas):
         print("\n* * * * Cliente não encontrado, fluxo de criação de conta encerrado! * * * *")
         return
 
-    conta = ContaCorrente.nova_conta(cliente=cliente, numero=numero_conta, limite=500, limite_saques=50)
+    limite = float(input("Informe o valor limite de saque: "))
+    limite_saques = int(input("Informe o número máximo de saques: "))
+
+    conta = ContaCorrente.nova_conta(cliente=cliente, numero=numero_conta, limite=limite, limite_saques=limite_saques)
     contas.append(conta)
     cliente.contas.append(conta)
 
@@ -383,9 +419,26 @@ def listar_contas(contas):
         print(textwrap.dedent(str(conta)))
 
 
+def salvar_dados(clientes, contas):
+    with open(DATA_PATH / "clientes.pkl", "wb") as f:
+        pickle.dump(clientes, f)
+    with open(DATA_PATH / "contas.pkl", "wb") as f:
+        pickle.dump(contas, f)
+
+
+def carregar_dados():
+    try:
+        with open(DATA_PATH / "clientes.pkl", "rb") as f:
+            clientes = pickle.load(f)
+        with open(DATA_PATH / "contas.pkl", "rb") as f:
+            contas = pickle.load(f)
+        return clientes, contas
+    except FileNotFoundError:
+        return [], []
+
+
 def main():
-    clientes = []
-    contas = []
+    clientes, contas = carregar_dados()
 
     while True:
         opcao = menu()
@@ -410,6 +463,8 @@ def main():
             listar_contas(contas)
 
         elif opcao == "sair":
+            salvar_dados(clientes, contas)
+            print("\n=== Dados salvos com sucesso! ===")
             break
 
         else:
