@@ -1,0 +1,24 @@
+{% extends 'contas/base.html' %}
+
+{% block content %}
+<div class="row text-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm p-4">
+            <h3>💰</h3>
+            <a href="{% url 'depositar' %}" class="btn btn-success w-100">Depositar</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm p-4">
+            <h3>💸</h3>
+            <a href="{% url 'sacar' %}" class="btn btn-danger w-100">Sacar</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm p-4">
+            <h3>📄</h3>
+            <a href="{% url 'extrato' %}" class="btn btn-primary w-100">Ver Extrato</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
