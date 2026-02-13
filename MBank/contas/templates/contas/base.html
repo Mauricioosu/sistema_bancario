@@ -7,11 +7,21 @@
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">MBank</a>
-            <span class="navbar-text text-white">Bem-vindo, {{ user.username }}</span>
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'index' %}">MBank</a>
+        <div class="navbar-text text-white">
+            {% if user.is_authenticated %}
+                Olá, {{ user.first_name }} | 
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-light">Sair</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="text-white">Entrar</a>
+            {% endif %}
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container">
         {% block content %}
