@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .models import Conta, Transacao
 from django.contrib import messages
 from .forms import CadastroForm
 from django.contrib.auth.decorators import login_required
+from decimal import Decimal
 
 
 def cadastrar(request):
@@ -25,14 +26,24 @@ def index(request):
 
 @login_required
 def extrato(request):
-    conta = get_object_or_404(Conta, usuario=request.user)
-    transacoes = conta.transacoes.all().order_by('-data')
-    return render(request, 'contas/extrato.html', {'conta': conta, 'transacoes': transacoes})
+    try:
+        conta = Conta.objects.get(usuario=request.user)
+        transacoes = Transacao.objects.filter(conta=conta).order_by('-data')
+    except Conta.DoesNotExist:
+        return render(request, 'contas/extrato.html', {
+            'error': 'Você ainda não possui uma conta ativa.',
+            'saldo': 0
+        })
+
+    return render(request, 'contas/extrato.html', {
+        'transacoes': transacoes,
+        'saldo': conta.saldo
+    })
 
 
 @login_required
 def depositar(request):
-    conta = Conta.obejcts.first()
+    conta = Conta.objects.first()
 
     if request.method == "POST":
         valor = float(request.POST.get('valor'))
@@ -53,4 +64,20 @@ def depositar(request):
 
 @login_required
 def sacar(request):
-    return render(request, 'contas/operacao.html', {'titulo': 'Realizar Saque'})
+    if request.method == "POST":
+        valor = Decimal(request.POST.get('valor'))
+        conta = Conta.objects.get(usuario=request.user)
+
+        if 0 < valor <= conta.saldo:
+            conta.saldo -= valor
+            conta.save()
+
+            # Regista no extrato
+            Transacao.objects.create(conta=conta, tipo='S', valor=valor)
+
+            messages.success(request, f"Saque de R$ {valor} realizado!")
+            return redirect('index')
+        else:
+            messages.error(request, "Saldo insuficiente ou valor inválido.")
+
+    return render(request, 'contas/saque.html')
