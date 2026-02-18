@@ -10,4 +10,5 @@ urlpatterns = [
     path('cadastrar/', views.cadastrar, name='cadastrar'),
     path('login/', auth_views.LoginView.as_view(template_name='contas/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('transferir/', views.transferir, name='transferir'),
 ]

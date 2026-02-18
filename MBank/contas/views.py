@@ -4,6 +4,8 @@ from django.contrib import messages
 from .forms import CadastroForm
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
+from django.db import transaction
+from django.contrib.auth.models import User
 
 
 def cadastrar(request):
@@ -81,3 +83,52 @@ def sacar(request):
             messages.error(request, "Saldo insuficiente ou valor inválido.")
 
     return render(request, 'contas/saque.html')
+
+
+@login_required
+def transferir(request):
+    if request.method == "POST":
+        username_destino = request.POST.get('username_destino')
+        try:
+            valor = Decimal(request.POST.get('valor'))
+        except (ValueError, TypeError):
+            messages.error(request, "Valor inválido.")
+            return redirect('transferir')
+
+        if valor <= 0:
+            messages.error(request, "O valor deve ser maior que zero.")
+            return redirect('transferir')
+
+        try:
+            with transaction.atomic():
+                conta_origem = Conta.objects.select_for_update().get(usuario=request.user)
+                try:
+                    user_destino = User.objects.get(username=username_destino)
+                    conta_destino = Conta.objects.select_for_update().get(usuario=user_destino)
+                except (User.DoesNotExist, Conta.DoesNotExist):
+                    messages.error(request, "Utilizador de destino não encontrado.")
+                    return redirect('transferir')
+
+                if conta_origem == conta_destino:
+                    messages.error(request, "Não pode transferir para si mesmo.")
+                    return redirect('transferir')
+
+                if conta_origem.saldo >= valor:
+                    conta_origem.saldo -= valor
+                    conta_destino.saldo += valor
+
+                    conta_origem.save()
+                    conta_destino.save()
+
+                    Transacao.objects.create(conta=conta_origem, tipo='S', valor=valor)
+                    Transacao.objects.create(conta=conta_destino, tipo='D', valor=valor)
+
+                    messages.success(request, f"Transferência de R$ {valor} para {username_destino} concluída!")
+                    return redirect('index')
+                else:
+                    messages.error(request, "Saldo insuficiente para a transferência.")
+
+        except Exception:
+            messages.error(request, "Ocorreu um erro inesperado no processamento.")
+
+    return render(request, 'contas/transferir.html')

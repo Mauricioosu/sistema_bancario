@@ -1,0 +1,19 @@
+<h2>Efetuar Transferência</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <div>
+        <label>Username do Destinatário:</label>
+        <input type="text" name="username_destino" required placeholder="Ex: joao123">
+    </div>
+    <br>
+    <div>
+        <label>Valor (R$):</label>
+        <input type="number" name="valor" step="0.01" min="0.01" required>
+    </div>
+    <br>
+    <button type="submit">Transferir Agora</button>
+</form>
+
+<br>
+<a href="{% url 'index' %}">Cancelar e Voltar</a>
