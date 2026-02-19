@@ -1,19 +1,19 @@
-<h2>Efetuar Transferência</h2>
-
-<form method="POST">
-    {% csrf_token %}
-    <div>
-        <label>Username do Destinatário:</label>
-        <input type="text" name="username_destino" required placeholder="Ex: joao123">
-    </div>
+<div class="container">
+    <h2>💸 Nova Transferência</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Username do Destino:</label><br>
+            <input type="text" name="username_destino" required style="width: 100%; padding: 8px;">
+        </p>
+        <p>
+            <label>Valor (R$):</label><br>
+            <input type="number" name="valor" step="0.01" required style="width: 100%; padding: 8px;">
+        </p>
+        <button type="submit" class="btn btn-transferir" style="width: 100%; border: none; cursor: pointer;">
+            Confirmar Transferência
+        </button>
+    </form>
     <br>
-    <div>
-        <label>Valor (R$):</label>
-        <input type="number" name="valor" step="0.01" min="0.01" required>
-    </div>
-    <br>
-    <button type="submit">Transferir Agora</button>
-</form>
-
-<br>
-<a href="{% url 'index' %}">Cancelar e Voltar</a>
+    <a href="{% url 'index' %}" style="display: block; text-align: center; color: #666;">Voltar</a>
+</div>

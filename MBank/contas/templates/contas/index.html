@@ -1,14 +1,24 @@
-{% extends 'contas/base.html' %}
+<div class="container">
+    <h1>🏦 MBank</h1>
+    
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
-{% block content %}
-<div class="row text-center">
-     <div class="operacoes">
-    <h3>O que deseja fazer hoje?</h3>
-    <div class="botoes-grid">
+    <div class="saldo-card">
+        <p>Olá, <strong>{{ user.username }}</strong></p>
+        <h2>Saldo: R$ {{ conta.saldo }}</h2>
+    </div>
+
+    <div class="menu-grid">
         <a href="{% url 'depositar' %}" class="btn">➕ Depositar</a>
         <a href="{% url 'sacar' %}" class="btn">➖ Sacar</a>
-        <a href="{% url 'transferir' %}" class="btn">💸 Transferir</a>
-        <a href="{% url 'extrato' %}" class="btn">📄 Ver Extrato</a>
+        <a href="{% url 'transferir' %}" class="btn btn-transferir">💸 Transferir (PIX)</a>
+        <a href="{% url 'extrato' %}" class="btn">📄 Extrato</a>
+        <a href="{% url 'logout' %}" class="btn btn-sair">Sair</a>
     </div>
 </div>
-{% endblock %}
