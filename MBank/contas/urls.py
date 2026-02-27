@@ -1,14 +1,12 @@
-from django.urls import path
-from . import views
-from django.contrib.auth import views as auth_views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import ClienteViewSet, ContaViewSet, TransacaoViewSet
+
+router = DefaultRouter()
+router.register(r'clientes', ClienteViewSet)
+router.register(r'contas', ContaViewSet)
+router.register(r'transacoes', TransacaoViewSet)
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('extrato/', views.extrato, name='extrato'),
-    path('depositar/', views.depositar, name='depositar'),
-    path('sacar/', views.sacar, name='sacar'),
-    path('cadastrar/', views.cadastrar, name='cadastrar'),
-    path('login/', auth_views.LoginView.as_view(template_name='contas/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('transferir/', views.transferir, name='transferir'),
+    path('', include(router.urls)),
 ]
