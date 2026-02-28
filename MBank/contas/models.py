@@ -1,13 +1,14 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class Cliente(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cliente_perfil')
     nome = models.CharField(max_length=150)
     cpf = models.CharField(max_length=11, unique=True)
     data_nascimento = models.CharField(max_length=10)
     endereco = models.CharField(max_length=255)
-    senha = models.CharField(max_length=128)
 
     def __str__(self):
         return f"{self.nome} - CPF: {self.cpf}"
