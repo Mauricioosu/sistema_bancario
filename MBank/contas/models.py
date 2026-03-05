@@ -30,6 +30,8 @@ class Transacao(models.Model):
     TIPO_CHOICES = (
         ('DEPOSITO', 'Depósito'),
         ('SAQUE', 'Saque'),
+        ('TRANSF_ENV', 'Transferência Enviada'),
+        ('TRANSF_REC', 'Transferência Recebida'),
     )
     conta = models.ForeignKey(Conta, on_delete=models.CASCADE, related_name='transacoes')
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)

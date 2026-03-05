@@ -9,6 +9,7 @@ from .serializers import (
     OperacaoBancariaSerializer
 )
 from .services import ContaService
+from .serializers import TransferenciaSerializer
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -52,6 +53,29 @@ class ContaViewSet(viewsets.ModelViewSet):
                 return Response({"mensagem": "Saque realizado com sucesso.", "novo_saldo": novo_saldo}, status=status.HTTP_200_OK)
             except ValueError as e:
                 return Response({"erro": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def transferir(self, request, pk=None):
+        conta_origem = self.get_object()
+        serializer = TransferenciaSerializer(data=request.data)
+
+        if serializer.is_valid():
+            numero_destino = serializer.validated_data['conta_destino']
+            valor = serializer.validated_data['valor']
+
+            try:
+                novo_saldo = ContaService.transferir(conta_origem, numero_destino, valor)
+                return Response(
+                    {
+                        "mensagem": "Transferência realizada com sucesso.",
+                        "novo_saldo": novo_saldo
+                    },
+                    status=status.HTTP_200_OK
+                )
+            except ValueError as e:
+                return Response({"erro": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

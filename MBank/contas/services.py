@@ -74,3 +74,32 @@ class ContaService:
 
         Transacao.objects.create(conta=conta, tipo='SAQUE', valor=valor_decimal)
         return conta.saldo
+
+    @staticmethod
+    @transaction.atomic
+    def transferir(conta_origem, numero_conta_destino, valor):
+        valor_decimal = Decimal(str(valor))
+
+        if valor_decimal <= 0:
+            raise ValueError("O valor deve ser positivo.")
+
+        if conta_origem.numero == numero_conta_destino:
+            raise ValueError("Não pode transferir para a própria conta.")
+
+        if valor_decimal > conta_origem.saldo:
+            raise ValueError("Saldo insuficiente para transferência.")
+
+        try:
+            conta_destino = Conta.objects.get(numero=numero_conta_destino)
+        except Conta.DoesNotExist:
+            raise ValueError("Conta de destino não encontrada.")
+
+        conta_origem.saldo -= valor_decimal
+        conta_origem.save()
+        Transacao.objects.create(conta=conta_origem, tipo='TRANSF_ENV', valor=valor_decimal)
+
+        conta_destino.saldo += valor_decimal
+        conta_destino.save()
+        Transacao.objects.create(conta=conta_destino, tipo='TRANSF_REC', valor=valor_decimal)
+
+        return conta_origem.saldo

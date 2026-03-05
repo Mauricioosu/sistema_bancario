@@ -51,3 +51,13 @@ class OperacaoBancariaSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("O valor da operação deve ser maior que zero.")
         return value
+
+
+class TransferenciaSerializer(serializers.Serializer):
+    conta_destino = serializers.IntegerField()
+    valor = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+    def validate_valor(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("O valor da transferência deve ser maior que zero.")
+        return value
