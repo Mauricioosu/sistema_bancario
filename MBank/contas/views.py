@@ -80,11 +80,19 @@ class ContaViewSet(viewsets.ModelViewSet):
 
 
 class TransacaoViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Endpoint para consultar o extrato/histórico (Apenas Leitura).
+    Com paginação e filtros incluídos.
+    """
     serializer_class = TransacaoSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    filterset_fields = ['tipo', 'data']
+    ordering_fields = ['data', 'valor']
+    ordering = ['-data']
 
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            return Transacao.objects.all().order_by('-data')
-        return Transacao.objects.filter(conta__cliente__usuario=user).order_by('-data')
+            return Transacao.objects.all()
+        return Transacao.objects.filter(conta__cliente__usuario=user)
